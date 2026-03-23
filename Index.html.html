@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Trabalhando Coordenação</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: #0a0f1e;
+            min-height: 100vh;
+            transition: background 0.3s ease;
+        }
+
+        body.light-theme {
+            background: #eef2f7;
+        }
+
+        .app-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* FUNDO CACHOEIRA DE TECLADOS */
+        .keyboard-rain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .rain-emoji {
+            position: absolute;
+            font-size: 2rem;
+            opacity: 0.5;
+            animation: fall linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-20vh) rotate(0deg); opacity: 0.7; }
+            80% { opacity: 0.4; }
+            100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Menu principal */
+        .menu-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 20;
+            transition: all 0.3s;
+        }
+
+        body.light-theme .menu-screen {
+            background: rgba(240, 248, 255, 0.7);
+            backdrop-filter: blur(10px);
+        }
+
+        .menu-card {
+            background: rgba(20, 25, 40, 0.85);
+            border-radius: 48px;
+            padding: 2.5rem 3rem;
+            text-align: center;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,215,0,0.3);
+            transition: transform 0.2s;
+            min-width: 340px;
+        }
+
+        body.light-theme .menu-card {
+            background: rgba(255,255,245,0.9);
+            border: 1px solid #ffb347;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+
+        .menu-card h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1.8rem;
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 2px;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        button {
+            background: linear-gradient(45deg, #ff6a3d, #ff3b6f);
+            border: none;
+            padding: 12px 28px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 60px;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 5px 12px rgba(0,0,0,0.3);
+        }
+
+        button:hover {
+            transform: scale(1.02);
+            filter: brightness(1.05);
+        }
+
+        /* Layout de créditos estilizado */
+        .credits-panel {
+            margin-top: 25px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 28px;
+            padding: 15px 25px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,200,100,0.5);
+            transition: all 0.3s;
+        }
+
+        body.light-theme .credits-panel {
+            background: rgba(50,40,30,0.2);
+            border: 1px solid #ffaa55;
+        }
+
+        .credits-panel h3 {
+            color: #ffaa66;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .credits-names {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .credit-name {
+            background: linear-gradient(135deg, #ff9966, #ff5e62);
+            padding: 5px 16px;
+            border-radius: 40px;
+            font-weight: bold;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .tutorial-hint {
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: #ffdd99;
+            border-top: 1px dashed rgba(255,200,100,0.4);
+            padding-top: 12px;
+        }
+
+        body.light-theme .tutorial-hint {
+            color: #5a3e2a;
+        }
+
+        /* Controles de acessibilidade */
+        .accessibility-bar {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            display: flex;
+            gap: 12px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            padding: 8px 16px;
+            border-radius: 60px;
+            border: 1px solid rgba(255,255,200,0.3);
+        }
+
+        .accessibility-bar button {
+            background: #2c3e66;
+            padding: 8px 16px;
+            font-size: 1.1rem;
+            box-shadow: none;
+            min-width: 44px;
+        }
+
+        .zoom-btn {
+            background: #1f5e3a;
+        }
+
+        /* tela do jogo */
+        .game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: none;
+            background: radial-gradient(circle at center, #1a2a3a, #0a0f1e);
+            z-index: 5;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        body.light-theme .game-container {
+            background: radial-gradient(circle at center, #e0eaf4, #bdd4e7);
+        }
+
+        .game-ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(8px);
+            padding: 10px 24px;
+            border-radius: 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 15;
+            font-weight: bold;
+            color: white;
+            font-size: 1.3rem;
+            pointer-events: none;
+        }
+
+        .lives span {
+            color: #ff5555;
+            font-size: 1.8rem;
+            letter-spacing: 4px;
+        }
+
+        .difficulty-label {
+            background: gold;
+            color: #1e2a3a;
+            padding: 4px 12px;
+            border-radius: 40px;
+        }
+
+        .tip-message {
+            position: absolute;
+            bottom: 30%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(12px);
+            color: #ffecb3;
+            padding: 12px 24px;
+            border-radius: 60px;
+            font-size: 1.1rem;
+            white-space: nowrap;
+            z-index: 30;
+            pointer-events: none;
+            transition: opacity 0.5s;
+            font-weight: bold;
+            border-left: 6px solid #ffaa44;
+        }
+
+        /* fruta com tamanho ajustável */
+        .fruit {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            cursor: pointer;
+            transition: transform 0.02s linear;
+            will-change: top, left;
+            filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.4));
+            z-index: 10;
+            pointer-events: auto;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.8rem;
+            box-shadow: 0 8px 12px rgba(0,0,0,0.3);
+        }
+
+        .accessibility-zoom {
+            transition: all 0.2s ease;
+        }
+        .accessibility-zoom .fruit {
+            width: calc(70px * var(--zoom-factor, 1));
+            height: calc(70px * var(--zoom-factor, 1));
+            font-size: calc(2.8rem * var(--zoom-factor, 1));
+        }
+        .accessibility-zoom .game-ui {
+            font-size: calc(1.3rem * var(--zoom-factor, 1));
+        }
+        .accessibility-zoom .tip-message {
+            font-size: calc(1.1rem * var(--zoom-factor, 1));
+            padding: calc(12px * var(--zoom-factor, 1)) calc(24px * var(--zoom-factor, 1));
+        }
+        .accessibility-zoom .menu-card {
+            transform: scale(var(--zoom-factor, 1));
+        }
+
+        .fruit:active {
+            transform: scale(0.95);
+        }
+
+        .splash {
+            position: absolute;
+            pointer-events: none;
+            font-size: 2rem;
+            animation: fadeOut 0.3s forwards;
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; transform: scale(0.5);}
+            100% { opacity: 0; transform: scale(1.5);}
+        }
+
+        @media (max-width: 700px) {
+            .fruit { width: 55px; height: 55px; font-size: 2.2rem; }
+            .game-ui { font-size: 1rem; }
+        }
+
+        /* Modal de transição entre fases */
+        .phase-transition-modal {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .transition-card {
+            background: linear-gradient(145deg, #2a2f3f, #1a1f2a);
+            border-radius: 48px;
+            padding: 2rem;
+            max-width: 450px;
+            text-align: center;
+            color: white;
+            border: 2px solid #ffaa44;
+        }
+        body.light-theme .transition-card {
+            background: #fff5e6;
+            color: #2c2c2c;
+        }
+        .transition-card h2 {
+            margin-bottom: 20px;
+            color: #ffaa66;
+        }
+        .transition-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+        .transition-buttons button {
+            padding: 10px 24px;
+        }
+
+        /* Tutorial modal */
+        .tutorial-modal {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .tutorial-card {
+            background: linear-gradient(145deg, #2a2f3f, #1a1f2a);
+            border-radius: 48px;
+            padding: 2rem;
+            max-width: 500px;
+            text-align: center;
+            color: white;
+            border: 2px solid #ffaa44;
+        }
+        body.light-theme .tutorial-card {
+            background: #fff5e6;
+            color: #2c2c2c;
+        }
+        .tutorial-card h2 {
+            margin-bottom: 20px;
+            color: #ffaa66;
+        }
+        .fruit-demo {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 25px 0;
+        }
+        .demo-fruit {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+        .demo-red { background: linear-gradient(145deg, #ff4d4d, #cc0000); border: 3px solid #ff8888; }
+        .demo-blue { background: linear-gradient(145deg, #3b82f6, #1e3a8a); border: 3px solid #88aaff; }
+        .close-tutorial {
+            margin-top: 20px;
+            background: #ff6a3d;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container" id="appContainer">
+    <!-- Barra de acessibilidade -->
+    <div class="accessibility-bar">
+        <button id="themeToggleBtn" aria-label="Alternar tema">🌙</button>
+        <button id="zoomOutBtn" class="zoom-btn" aria-label="Diminuir elementos">🔍-</button>
+        <button id="zoomInBtn" class="zoom-btn" aria-label="Aumentar elementos">🔍+</button>
+    </div>
+
+    <div class="keyboard-rain" id="keyboardRain"></div>
+
+    <!-- Tela de Menu -->
+    <div class="menu-screen" id="menuScreen">
+        <div class="menu-card">
+            <h1>🎯 TRABALHANDO COORDENAÇÃO</h1>
+            <div class="btn-group">
+                <button id="playBtn">JOGAR</button>
+                <button id="tutorialBtn">TUTORIAL</button>
+                <button id="creditsBtn">CRÉDITOS</button>
+            </div>
+            <div id="creditsPanel" style="display: none;" class="credits-panel">
+                <h3>✦ DESENVOLVIDO POR ✦</h3>
+                <div class="credits-names">
+                    <span class="credit-name">Keven William</span>
+                    <span class="credit-name">Daniel Henrique</span>
+                    <span class="credit-name">Naianny</span>
+                </div>
+                <div class="tutorial-hint">
+                    💡 Frutas VERMELHAS = Clique Esquerdo | Frutas AZUIS = Clique Direito
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela do Jogo -->
+    <div class="game-container" id="gameContainer">
+        <div class="game-ui">
+            <div>🍉 FASE: <span id="currentPhase">1</span> / 3</div>
+            <div class="lives">❤️ <span id="livesCount">5</span></div>
+            <div class="difficulty-label" id="difficultyName">FÁCIL</div>
+        </div>
+        <div id="gameArea" style="width:100%; height:100%; position:relative; overflow:hidden;"></div>
+        <div id="tipMessage" class="tip-message" style="opacity:0;"></div>
+    </div>
+</div>
+
+<script>
+    // Configurações
+    let currentDifficulty = 1;      // 1=Fácil, 2=Médio, 3=Difícil
+    let lives = 5;
+    let gameActive = false;
+    let fruitsArray = [];
+    let animationFrameId = null;
+    let spawnInterval = null;
+    let fallSpeed = 1.2;
+    let fruitSpawnRate = 1800;
+    let gameWidth = window.innerWidth;
+    let gameHeight = window.innerHeight;
+    let missedFruits = 0;
+    let phaseCompleted = false;
+    let tipAlreadyShown = false;
+    let tipLostAlready = false;
+    let cutCounter = 0;
+
+    const gameContainer = document.getElementById('gameContainer');
+    const menuScreen = document.getElementById('menuScreen');
+    const gameArea = document.getElementById('gameArea');
+    const livesSpan = document.getElementById('livesCount');
+    const currentPhaseSpan = document.getElementById('currentPhase');
+    const difficultyNameSpan = document.getElementById('difficultyName');
+    const tipDiv = document.getElementById('tipMessage');
+    const appContainer = document.getElementById('appContainer');
+
+    // Frutas: VERMELHAS (clique esquerdo) e AZUIS (clique direito) - emojis normais de frutas
+    const redFruits = [
+        { name: "🍎", type: "left", bgGrad: "linear-gradient(145deg, #ff3333, #aa1111)", borderColor: "#ff7777" },
+        { name: "🍓", type: "left", bgGrad: "linear-gradient(145deg, #ff5555, #bb2222)", borderColor: "#ff9999" },
+        { name: "🍒", type: "left", bgGrad: "radial-gradient(circle, #e34d4d, #aa2a2a)", borderColor: "#ffaaaa" },
+        { name: "🍉", type: "left", bgGrad: "linear-gradient(145deg, #dd4a4a, #aa2e2e)", borderColor: "#ffbbbb" },
+        { name: "🍊", type: "left", bgGrad: "linear-gradient(145deg, #ff6644, #cc4422)", borderColor: "#ffaa88" }
+    ];
+    
+    const blueFruits = [
+        { name: "🍇", type: "right", bgGrad: "linear-gradient(145deg, #3b82f6, #1e3a8a)", borderColor: "#7ab3ff" },
+        { name: "🍈", type: "right", bgGrad: "linear-gradient(145deg, #2c6edf, #0f2b66)", borderColor: "#6ea8ff" },
+        { name: "🍍", type: "right", bgGrad: "radial-gradient(circle, #4a8cff, #1a4c9e)", borderColor: "#8cb9ff" },
+        { name: "🥝", type: "right", bgGrad: "linear-gradient(145deg, #2c7eff, #1050aa)", borderColor: "#9cc4ff" },
+        { name: "🍑", type: "right", bgGrad: "linear-gradient(145deg, #4a6eff, #1e3a8a)", borderColor: "#88aaff" }
+    ];
+
+    function getRandomFruit() {
+        if (Math.random() < 0.5) {
+            const idx = Math.floor(Math.random() * redFruits.length);
+            return { ...redFruits[idx], colorType: "red" };
+        } else {
+            const idx = Math.floor(Math.random() * blueFruits.length);
+            return { ...blueFruits[idx], colorType: "blue" };
+        }
+    }
+
+    function setDifficulty(phase) {
+        if (phase === 1) {
+            fallSpeed = 0.65;
+            fruitSpawnRate = 2300;
+            difficultyNameSpan.innerText = "🍃 FÁCIL";
+        } else if (phase === 2) {
+            fallSpeed = 1.2;
+            fruitSpawnRate = 1700;
+            difficultyNameSpan.innerText = "⚡ MÉDIO";
+        } else if (phase === 3) {
+            fallSpeed = 2.1;
+            fruitSpawnRate = 1200;
+            difficultyNameSpan.innerText = "🔥 DIFÍCIL";
+        }
+    }
+
+    function resetGame(phase = 1) {
+        clearFruits();
+        if (spawnInterval) clearInterval(spawnInterval);
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        gameActive = true;
+        lives = 5;
+        missedFruits = 0;
+        phaseCompleted = false;
+        tipAlreadyShown = false;
+        tipLostAlready = false;
+        cutCounter = 0;
+        currentDifficulty = phase;
+        setDifficulty(phase);
+        updateLivesUI();
+        currentPhaseSpan.innerText = phase;
+        tipDiv.style.opacity = "0";
+        startSpawning();
+        startAnimationLoop();
+        showTemporaryTip("🎯 Vermelhas = ESQUERDO | Azuis = DIREITO", 3500);
+    }
+
+    function clearFruits() {
+        for (let f of fruitsArray) {
+            if (f.element) f.element.remove();
+        }
+        fruitsArray = [];
+    }
+
+    function updateLivesUI() {
+        // Corações mostram quantas vidas restam (5 - missedFruits)
+        const heartsLeft = Math.max(0, 5 - missedFruits);
+        livesSpan.innerText = heartsLeft;
+    }
+
+    function showTemporaryTip(msg, duration = 4000) {
+        tipDiv.innerText = msg;
+        tipDiv.style.opacity = "1";
+        setTimeout(() => {
+            if(tipDiv) tipDiv.style.opacity = "0";
+        }, duration);
+    }
+
+    function fruitMissed() {
+        if (!gameActive) return;
+        missedFruits++;
+        updateLivesUI();
+        
+        if (missedFruits >= 5) {
+            gameActive = false;
+            clearInterval(spawnInterval);
+            cancelAnimationFrame(animationFrameId);
+            showTemporaryTip("💔 Você perdeu! 5 frutas caíram...", 3000);
+            setTimeout(() => {
+                showGameOverMenu();
+            }, 2000);
+        } else {
+            if (currentDifficulty === 2 && missedFruits === 1 && !tipAlreadyShown) {
+                tipAlreadyShown = true;
+                showTemporaryTip("👀 Dica: olhe para a tela enquanto move o mouse! Não perca o foco.", 4500);
+            }
+        }
+    }
+
+    function showGameOverMenu() {
+        gameContainer.style.display = "none";
+        menuScreen.style.display = "flex";
+        clearFruits();
+        if(spawnInterval) clearInterval(spawnInterval);
+        if(animationFrameId) cancelAnimationFrame(animationFrameId);
+        gameActive = false;
+    }
+
+    // Modal de transição entre fases - pergunta se quer continuar ou refazer
+    function showPhaseCompleteModal(nextPhase) {
+        gameActive = false;
+        clearInterval(spawnInterval);
+        cancelAnimationFrame(animationFrameId);
+        clearFruits();
+        
+        const modal = document.createElement('div');
+        modal.className = 'phase-transition-modal';
+        modal.innerHTML = `
+            <div class="transition-card">
+                <h2>🎉 FASE ${currentDifficulty} COMPLETA! 🎉</h2>
+                <p style="margin: 20px 0; font-size: 1.1rem;">Parabéns! Você completou a fase ${currentDifficulty === 1 ? 'FÁCIL' : currentDifficulty === 2 ? 'MÉDIO' : 'DIFÍCIL'}.</p>
+                <p>O que deseja fazer?</p>
+                <div class="transition-buttons">
+                    <button id="nextPhaseBtn">➡️ AVANÇAR</button>
+                    <button id="replayPhaseBtn">🔄 JOGAR NOVAMENTE</button>
+                </div>
+                <button id="menuPhaseBtn" style="margin-top: 15px; background: #555;">🏠 MENU PRINCIPAL</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        document.getElementById('nextPhaseBtn').onclick = () => {
+            modal.remove();
+            if (nextPhase <= 3) {
+                resetGame(nextPhase);
+                gameContainer.style.display = "flex";
+                menuScreen.style.display = "none";
+            }
+        };
+        document.getElementById('replayPhaseBtn').onclick = () => {
+            modal.remove();
+            resetGame(currentDifficulty);
+            gameContainer.style.display = "flex";
+            menuScreen.style.display = "none";
+        };
+        document.getElementById('menuPhaseBtn').onclick = () => {
+            modal.remove();
+            gameContainer.style.display = "none";
+            menuScreen.style.display = "flex";
+        };
+    }
+
+    function checkPhaseComplete() {
+        if (phaseCompleted) return;
+        
+        let requiredCuts = (currentDifficulty === 1) ? 8 : (currentDifficulty === 2) ? 12 : (currentDifficulty === 3) ? 16 : 9999;
+        
+        if (cutCounter >= requiredCuts && gameActive) {
+            phaseCompleted = true;
+            gameActive = false;
+            clearInterval(spawnInterval);
+            cancelAnimationFrame(animationFrameId);
+            clearFruits();
+            
+            let nextPhase = currentDifficulty + 1;
+            if (nextPhase > 3) {
+                // Jogo completo! Parabéns
+                const modal = document.createElement('div');
+                modal.className = 'phase-transition-modal';
+                modal.innerHTML = `
+                    <div class="transition-card">
+                        <h2>🏆 PARABÉNS! 🏆</h2>
+                        <p style="margin: 20px 0; font-size: 1.2rem;">Você completou todas as fases!</p>
+                        <p>Excelente coordenação motora!</p>
+                        <div class="transition-buttons">
+                            <button id="menuFinalBtn">VOLTAR AO MENU</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                document.getElementById('menuFinalBtn').onclick = () => {
+                    modal.remove();
+                    gameContainer.style.display = "none";
+                    menuScreen.style.display = "flex";
+                };
+            } else {
+                showPhaseCompleteModal(nextPhase);
+            }
+        }
+    }
+
+    function destroyFruit(element, isCorrect) {
+        if (!element.parentNode || !gameActive) return;
+        const idx = fruitsArray.findIndex(f => f.element === element);
+        if (idx !== -1) fruitsArray.splice(idx,1);
+        
+        const rect = element.getBoundingClientRect();
+        const splash = document.createElement('div');
+        splash.className = 'splash';
+        splash.innerText = '💥';
+        splash.style.left = (rect.left + rect.width/2) + 'px';
+        splash.style.top = (rect.top + rect.height/2) + 'px';
+        splash.style.position = 'fixed';
+        splash.style.fontSize = '2rem';
+        splash.style.pointerEvents = 'none';
+        document.body.appendChild(splash);
+        setTimeout(() => splash.remove(), 300);
+        element.remove();
+        
+        cutCounter++;
+        checkPhaseComplete();
+    }
+
+    function createFruitElement(fruitData, x, y) {
+        const div = document.createElement('div');
+        div.className = 'fruit';
+        div.style.left = x + 'px';
+        div.style.top = y + 'px';
+        div.style.background = fruitData.bgGrad;
+        div.style.border = `3px solid ${fruitData.borderColor}`;
+        div.innerText = fruitData.name;
+        div.setAttribute('data-click-type', fruitData.type);
+        
+        div.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!gameActive) return;
+            const requiredType = div.getAttribute('data-click-type');
+            if (requiredType === 'left') {
+                destroyFruit(div, true);
+            } else {
+                showTemporaryTip("❌ Fruta AZUL = Clique DIREITO!", 800);
+            }
+        });
+        
+        div.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!gameActive) return false;
+            const requiredType = div.getAttribute('data-click-type');
+            if (requiredType === 'right') {
+                destroyFruit(div, true);
+            } else {
+                showTemporaryTip("❌ Fruta VERMELHA = Clique ESQUERDO!", 800);
+            }
+            return false;
+        });
+        return div;
+    }
+
+    function spawnFruit() {
+        if (!gameActive) return;
+        const randomX = 20 + Math.random() * (gameWidth - 100);
+        const startY = -40;
+        const fruitTemplate = getRandomFruit();
+        const fruitDiv = createFruitElement(fruitTemplate, randomX, startY);
+        gameArea.appendChild(fruitDiv);
+        fruitsArray.push({
+            element: fruitDiv,
+            y: startY,
+            speed: fallSpeed,
+            xPos: randomX
+        });
+    }
+
+    function startSpawning() {
+        if (spawnInterval) clearInterval(spawnInterval);
+        spawnInterval = setInterval(() => {
+            if (gameActive) spawnFruit();
+        }, fruitSpawnRate);
+    }
+
+    function startAnimationLoop() {
+        function update() {
+            if (!gameActive) return;
+            let toRemove = [];
+            for (let i = 0; i < fruitsArray.length; i++) {
+                const fruit = fruitsArray[i];
+                fruit.y += fruit.speed;
+                fruit.element.style.top = fruit.y + 'px';
+                if (fruit.y > gameHeight + 60) {
+                    fruit.element.remove();
+                    toRemove.push(i);
+                    fruitMissed();
+                }
+            }
+            for (let i = toRemove.length-1; i >= 0; i--) {
+                fruitsArray.splice(toRemove[i], 1);
+            }
+            if (gameActive) {
+                animationFrameId = requestAnimationFrame(update);
+            }
+        }
+        if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        animationFrameId = requestAnimationFrame(update);
+    }
+
+    function updateGameDimensions() {
+        gameWidth = window.innerWidth;
+        gameHeight = window.innerHeight;
+        if (gameArea) {
+            gameArea.style.width = gameWidth + 'px';
+            gameArea.style.height = gameHeight + 'px';
+        }
+    }
+
+    // Fundo de teclados
+    let rainInterval;
+    function startKeyboardRain() {
+        const rainContainer = document.getElementById('keyboardRain');
+        rainContainer.innerHTML = '';
+        const emojis = ['⌨️', '🔣', '💻', '🖱️', '⌨️', '🔘', '🖨️', '🎹', '⌨️', '🖥️'];
+        function createRainDrop() {
+            const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+            const span = document.createElement('div');
+            span.className = 'rain-emoji';
+            span.innerText = emoji;
+            const size = 1.5 + Math.random() * 2.2;
+            span.style.fontSize = `${size}rem`;
+            span.style.left = Math.random() * 100 + '%';
+            span.style.animationDuration = 7 + Math.random() * 9 + 's';
+            span.style.animationDelay = Math.random() * 5 + 's';
+            span.style.opacity = 0.3 + Math.random() * 0.5;
+            rainContainer.appendChild(span);
+            setTimeout(() => span.remove(), 15000);
+        }
+        if (rainInterval) clearInterval(rainInterval);
+        rainInterval = setInterval(createRainDrop, 800);
+        for(let i=0;i<20;i++) setTimeout(createRainDrop, i*180);
+    }
+
+    // Zoom de acessibilidade
+    let currentElementZoom = 1.0;
+    function applyElementZoom() {
+        appContainer.style.setProperty('--zoom-factor', currentElementZoom);
+        if (currentElementZoom !== 1) {
+            appContainer.classList.add('accessibility-zoom');
+        } else {
+            appContainer.classList.remove('accessibility-zoom');
+        }
+        const style = document.createElement('style');
+        style.id = 'dynamic-zoom-style';
+        const oldStyle = document.getElementById('dynamic-zoom-style');
+        if(oldStyle) oldStyle.remove();
+        style.id = 'dynamic-zoom-style';
+        style.textContent = `
+            .accessibility-zoom .fruit { width: calc(70px * ${currentElementZoom}); height: calc(70px * ${currentElementZoom}); font-size: calc(2.8rem * ${currentElementZoom}); }
+            .accessibility-zoom .game-ui { font-size: calc(1.3rem * ${currentElementZoom}); }
+            .accessibility-zoom .tip-message { font-size: calc(1.1rem * ${currentElementZoom}); padding: calc(12px * ${currentElementZoom}) calc(24px * ${currentElementZoom}); }
+            .accessibility-zoom .menu-card { transform: scale(${currentElementZoom}); }
+        `;
+        document.head.appendChild(style);
+    }
+
+    function showTutorial() {
+        const modal = document.createElement('div');
+        modal.className = 'tutorial-modal';
+        modal.innerHTML = `
+            <div class="tutorial-card">
+                <h2>🎯 COMO JOGAR</h2>
+                <div class="fruit-demo">
+                    <div class="demo-fruit demo-red">🍎</div>
+                    <div style="font-size:2rem;">➡️</div>
+                    <div class="demo-fruit demo-blue">🍇</div>
+                </div>
+                <p><strong style="color:#ff5555;">🍎 Frutas VERMELHAS</strong> → Clique com o <strong>BOTÃO ESQUERDO</strong></p>
+                <p><strong style="color:#3b82f6;">🍇 Frutas AZUIS</strong> → Clique com o <strong>BOTÃO DIREITO</strong></p>
+                <hr style="margin: 15px 0; opacity:0.3;">
+                <p>💡 Dificuldades:<br>
+                - <strong>FÁCIL</strong>: movimento mais lento, ideal para aprender<br>
+                - <strong>MÉDIO</strong>: velocidade moderada<br>
+                - <strong>DIFÍCIL</strong>: ritmo acelerado, teste sua coordenação!<br>
+                - Use os botões 🔍+ e 🔍- para aumentar frutas e textos</p>
+                <button class="close-tutorial">FECHAR</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        modal.querySelector('.close-tutorial').onclick = () => modal.remove();
+    }
+
+    // Eventos
+    document.getElementById('playBtn').onclick = () => {
+        menuScreen.style.display = 'none';
+        gameContainer.style.display = 'flex';
+        cutCounter = 0;
+        resetGame(1);
+        updateGameDimensions();
+    };
+    document.getElementById('tutorialBtn').onclick = () => showTutorial();
+    document.getElementById('creditsBtn').onclick = () => {
+        const panel = document.getElementById('creditsPanel');
+        if (panel.style.display === 'none' || !panel.style.display) panel.style.display = 'block';
+        else panel.style.display = 'none';
+    };
+    
+    document.getElementById('zoomInBtn').onclick = () => { if (currentElementZoom < 1.6) { currentElementZoom += 0.1; applyElementZoom(); } };
+    document.getElementById('zoomOutBtn').onclick = () => { if (currentElementZoom > 0.7) { currentElementZoom -= 0.1; applyElementZoom(); } };
+    document.getElementById('themeToggleBtn').onclick = () => {
+        document.body.classList.toggle('light-theme');
+        const btn = document.getElementById('themeToggleBtn');
+        if (document.body.classList.contains('light-theme')) btn.innerText = '☀️';
+        else btn.innerText = '🌙';
+    };
+    
+    window.addEventListener('resize', () => {
+        updateGameDimensions();
+        if(gameContainer.style.display === 'flex') clearFruits();
+    });
+    
+    startKeyboardRain();
+    updateGameDimensions();
+    applyElementZoom();
+</script>
+</body>
+</html>
